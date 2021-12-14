@@ -6,9 +6,32 @@ import numpy as np
 from sklearn.metrics import classification_report
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from sklearn.model_selection import cross_val_score, ShuffleSplit
+
+
+
 def load_data(file_name, preprocess = False):
     """
-    function to load the data
+    Code by : Dylan
+
+    Summary
+    This function load the data and separate the labels and the features
+
+    Parameters
+    ----------
+    param1 : string
+        Name of the file required
+    param2 : Boolean (Optional)
+        Allow pre_processing or not (by Default disabled)
+
+    Returns
+    -------
+    pd.Dataframe  : 
+        Dataframe of the different features
+    np.array :
+        The one-hot encoded label
+    np.array :
+        The different unique labels
+
     """
     df = pd.read_csv(file_name, sep=",")
     if (preprocess):
@@ -77,6 +100,26 @@ def find_best_depths(X,Y, n_depths=10, cvp=None, ):
 
 
 def pre_process (dataframe):
+    """
+    Code by : Dylan
+
+    Summary
+    This function is used for the pre processing of the dataset
+
+    Parameters
+    ----------
+    param1 : pd.Dataframe
+        DataFrame which is cleaned and normalized
+    Returns
+    -------
+    pd.Dataframe  : 
+        Dataframe of the different features
+    np.array :
+        The one-hot encoded label
+    np.array :
+        The different unique labels
+
+    """
     nodataval = '?'
 
     num_samples, num_features = dataframe.shape
@@ -109,12 +152,12 @@ def pre_process (dataframe):
         dataframe[col] = dataframe[col].astype(str).apply(lambda s: s.replace('\t', ''))
         dataframe[col] = dataframe[col].astype(str).apply(lambda s: s.replace(' ', ''))
 
-
+    dataframe = pd.get_dummies(dataframe, drop_first=True)
     y = dataframe.pop(dataframe.columns[-1]).values
     class_labels = np.unique(y)
     #one hot encode
-    dataframe = pd.get_dummies(dataframe, drop_first=True)
+    
 
     #normalization
-    dataframe = (dataframe - dataframe.mean()) / (dataframe.std())
+    dataframe = (dataframe - dataframe.min()) / (dataframe.max()- dataframe.min())
     return dataframe, y, class_labels
