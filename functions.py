@@ -151,7 +151,10 @@ def pre_process (dataframe):
     for col in cat_cols:
         dataframe[col] = dataframe[col].astype(str).apply(lambda s: s.replace('\t', ''))
         dataframe[col] = dataframe[col].astype(str).apply(lambda s: s.replace(' ', ''))
-
+    
+    #randomize order
+    dataframe = dataframe.sample(frac=1).reset_index(drop=True)
+    
     dataframe = pd.get_dummies(dataframe, drop_first=True)
     y = dataframe.pop(dataframe.columns[-1]).values
     class_labels = np.unique(y)
