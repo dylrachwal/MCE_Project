@@ -164,3 +164,25 @@ def pre_process (dataframe):
     #normalization
     dataframe = (dataframe - dataframe.min()) / (dataframe.max()- dataframe.min())
     return dataframe, y, class_labels
+
+class PCA_dec:
+    def __init__(self, data):
+        self.data = data
+        self.cov_matrix = np.cov(np.transpose(self.data))
+        self.eig_val, self.eig_vect = np.linalg.eig(self.cov_matrix)
+    
+    def exp_variance(self):
+        return np.cumsum(self.eig_val) / sum(self.eig_val)
+    
+    def PCA_decomposition(self, dim):
+        reduce_data = np.dot(np.transpose(self.eig_vect[:,:dim]), np.transpose(self.data))
+        return np.transpose(reduce_data)
+    
+def KNN(X_train,Y_train,X_test,K):
+    Y_test = []
+    for x in X_test:
+        index_list = np.argsort(np.linalg.norm((X_train-x), axis=1))[:K]
+        label_list = Y_train[index_list]
+        val, nb = np.unique(label_list, return_counts=True)
+        Y_test.append(val[np.argmax(nb)])
+    return Y_test
