@@ -7,7 +7,6 @@ from sklearn.metrics import  confusion_matrix, classification_report, plot_confu
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from sklearn.model_selection import cross_val_score, ShuffleSplit
 
-
 def load_data(file_name, preprocess = False, columns_name = None):
     """
     Code by : Dylan
@@ -255,7 +254,7 @@ def KNN(X_train,Y_train,X_test,K):
         val, nb = np.unique(label_list, return_counts=True)
         Y_test.append(val[np.argmax(nb)])
         
-    return Y_test
+    return np.array(Y_test)
 
 def K_Fold(X, n_split):
     """
@@ -289,7 +288,6 @@ def K_Fold(X, n_split):
         test_index_list.append(bloc_test)
         
     return train_index_list, test_index_list
-
 
 def display_confusion_matrix(model,X_test,Y_test,Y_pred):
     """
