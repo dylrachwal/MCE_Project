@@ -1,27 +1,18 @@
-# Python script for every functions used
+#### Python script for every functions used
 import pandas as pd
 from sklearn.model_selection import train_test_split, cross_validate
 from sklearn import svm
 import numpy as np
-from sklearn.metrics import confusion_matrix, classification_report, plot_confusion_matrix, recall_score,  roc_auc_score, log_loss, f1_score
-from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
-from sklearn.model_selection import cross_val_score, ShuffleSplit
-import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-from mpl_toolkits.mplot3d import Axes3D
-import pandas as pd
-from sklearn import svm
-from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
+from sklearn.metrics import  confusion_matrix, classification_report, plot_confusion_matrix, recall_score,  roc_auc_score, log_loss, f1_score
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score, ShuffleSplit
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, AdaBoostRegressor, AdaBoostClassifier
+
 from sklearn.tree import export_graphviz
-from sklearn.decomposition import PCA
-from sklearn.utils import shuffle
 from graphviz import Source
 
-
-def load_data(file_name, preprocess=False, columns_name=None):
+def load_data(file_name, preprocess = False, columns_name = None):
     """
     Code by : Dylan
 
@@ -51,15 +42,37 @@ def load_data(file_name, preprocess=False, columns_name=None):
     Y = df.pop(df.columns[-1]).values
     X = df
     class_labels = np.unique(Y)
-    return X, Y, class_labels
+    return X,Y,class_labels
 
-
-def split_data(X, Y, training_size):
+def split_data(X,Y,test_size):
     """
-    split the data in a training and test variables
-    """
-    return train_test_split(X, Y, test_size=X.shape[0]-training_size)
+    Code by : Dylan Rachwal
 
+    Summary
+    Split the dataset in a training and test parts
+
+    Parameters
+    ----------
+    param1 : pd.Dataframe  
+        Dataframe
+    param2 : np.array 
+        Labels
+    param3 : float 
+        ratio of the test_size over the total size of features
+
+    Returns
+    -------
+    pd.Dataframe  : 
+        Dataframe of the training part
+    pd.Dataframe  : 
+        Dataframe  of the testing part  
+    np.array :
+        Labels of the training part
+    np.array :
+        Labels of the testing part
+
+    """
+    return train_test_split(X, Y, test_size=test_size)
 
 def predict_SVC(X_train, X_test, Y_train, kernel='linear'):
     """
@@ -82,50 +95,158 @@ def predict_SVC(X_train, X_test, Y_train, kernel='linear'):
     -------
     sklearn.svm.SVC : 
         model of the SVM
-
+    
     np.array :
         predicted labels of the test dataset
 
     """
-    svc = svm.SVC(kernel=kernel)
+    svc = svm.SVC(kernel = kernel)
     svc.fit(X_train, Y_train)
     return svc, svc.predict(X_test)
 
 
-# def predict_Random_Forest_Classification(X_train, X_test, Y_train, depth, n_estimators):
-#    class_forest = RandomForestClassifier(max_depth=depth, n_estimators=n_estimators)
-#    class_forest.fit(X_train, Y_train)
-#    return class_forest, pred_forest = class_forest.predict(X_test)
+def predict_Random_Tree_Classification(X_train, X_test, Y_train, depth):
+    """
+    Code by : Christopher Jabea
+
+    Summary
+    create and predict using a Decision Tree
+
+    Parameters
+    ----------
+    param1 : pd.Dataframe
+        Dataset for training
+    param2 : pd.Dataframe
+        Dataset for testing
+    param3 : np.array
+        labels for training
+    param4 : int
+        maximal depth of each tree
+    Returns
+    -------
+     sklearn.tree.DecisionTreeClassifier : 
+        model 
+    
+    np.array :
+        predicted labels of the test dataset
+
+    """
+    class_tree = DecisionTreeClassifier(max_depth=depth)
+    class_tree.fit(X_train, Y_train)
+    return class_tree, class_tree.predict(X_test)
+
+
+def predict_Random_Forest_Classification(X_train, X_test, Y_train, depth, n_estimators):
+    """
+    Code by : Christopher Jabea
+
+    Summary
+    create and predict using a DecisionForest
+
+    Parameters
+    ----------
+    param1 : pd.Dataframe
+        Dataset for training
+    param2 : pd.Dataframe
+        Dataset for testing
+    param3 : np.array
+        labels for training
+    param4 : int
+        maximal depth of each tree
+    param5 : int
+        Number of Trees in the Forest 
+    Returns
+    -------
+     sklearn.tree.RandomForestClassifier : 
+        model
+    
+    np.array :
+        predicted labels of the test dataset
+
+    """
+    class_forest = RandomForestClassifier(max_depth=depth, n_estimators=n_estimators)
+    class_forest.fit(X_train, Y_train)
+    return class_forest, class_forest.predict(X_test)
 
 def precision_recall_multilabels(y_true, y_pred, labels):
     recalls = np.zeros((1, 2))
     precisions = np.zeros((1, 2))
     for label in labels:
-        label_array = np.full((y_true.shape), label)
+        label_array=np.full((y_true.shape),label)
         real_association = y_true == label_array
         pred_association = label_array == y_pred
-        TP = np.count_nonzero(np.logical_and(
-            real_association, pred_association))
-        P = np.count_nonzero(real_association)
-        FN = np.count_nonzero(pred_association)
-        if FN == 0:
-            recalls[0, label] = 1
+        TP=np.count_nonzero(np.logical_and(real_association, pred_association))
+        P=np.count_nonzero(real_association)
+        FN=np.count_nonzero(pred_association)
+        if FN ==0 :
+            recalls [0,label] = 1
         else:
-            recalls[0, label] = TP/FN
-        if P == 0:
-            precisions[0, label] = 0
-        else:
-            precisions[0, label] = TP/P
+            recalls[0,label]=TP/FN
+        if P == 0 :
+            precisions [0,label] = 0
+        else :
+            precisions[0,label]=TP/P
+        
 
     return precisions, recalls
 
+def plot_decision_tree(model, feature_names ):
+    """
+    Code by : Christopher Jabea
 
-def find_best_depths(X, Y, n_depths=10, cvp=None, ):
-    if(cvp is not None):
+    Summary
+    create and display the graph of the decision tree
+
+    Parameters
+    ----------
+    param1 : DecisionTreeClassifier
+        Model of the Decision Tree
+    param2 : List[str]
+        Name of the features
+    Returns
+    -------
+    graphviz : 
+        graph of the model
+
+    """
+    plot_tree = export_graphviz(model, out_file=None, feature_names=feature_names, filled=True) 
+    graph = Source(plot_tree) 
+    graph.render("class_tree")
+    
+    # Plot the tree
+    graph
+    return graph
+
+def find_best_depths(X,Y, n_depths=10, cv=False):
+    """
+    Code by : Christopher Jabea
+
+    Summary
+    Algorithms to find the best depths of a decision tree classification
+
+    Parameters
+    ----------
+    param1 : pd.Dataframe  
+        Dataframe
+    param2 : np.array 
+        Labels
+    param3 : int
+        maximum depth
+    param4 : Boolean
+        cross validation procedure, By default None 
+
+    Returns
+    -------
+    np.array  : 
+        scores of each depth using negative log loss
+
+
+    """
+    cvp=None
+    if(cv):
         # Define the cvp (cross-validation procedure) with random 1000 samples, 2/3 training size, and 1/3 test size
-        cvp = ShuffleSplit(
-            n_splits=X.shape[0], test_size=1/3, train_size=2/3, random_state=0)
-
+        cvp = ShuffleSplit(n_splits=X.shape[0], test_size=1/3, train_size=2/3, random_state=0)
+    
     # Define the max depths between 1 and 10
     depths = np.linspace(1, 10, n_depths)
 
@@ -133,12 +254,11 @@ def find_best_depths(X, Y, n_depths=10, cvp=None, ):
     tab_log_tree = []
     for i in range(n_depths):
         class_tree = DecisionTreeClassifier(max_depth=depths[i])
-        tab_log_tree.append(-cross_val_score(class_tree, X,
-                            Y, scoring='neg_log_loss', cv=cvp))
+        tab_log_tree.append(-cross_val_score(class_tree, X, Y, scoring='neg_log_loss', cv=cvp))
     return tab_log_tree
 
 
-def pre_process(dataframe):
+def pre_process (dataframe):
     """
     Code by : Dylan
 
@@ -168,47 +288,39 @@ def pre_process(dataframe):
 
     # Convert remaining false string columns
     other_numeric_columns = ["sg", "al", "su"]
-    dataframe[other_numeric_columns] = dataframe[other_numeric_columns].apply(
-        pd.to_numeric)
+    dataframe[other_numeric_columns] = dataframe[other_numeric_columns].apply(pd.to_numeric)
 
-    # convert false sting to numeric    a voir
+    ## convert false sting to numeric    a voir
     false_strings = ["pcv", "wc", "rc"]
     for column in false_strings:
-        dataframe[column] = pd.to_numeric(dataframe[column], errors='coerce')
+        dataframe[column]=pd.to_numeric(dataframe[column], errors='coerce')
 
     # Replace missing values
     fillna_mean_cols = pd.Index(
-        set(dataframe.columns[dataframe.dtypes ==
-            "float64"]) - set(other_numeric_columns)
+        set(dataframe.columns[dataframe.dtypes == "float64"]) - set(other_numeric_columns)
     )
     fillna_most_cols = pd.Index(
-        set(dataframe.columns[dataframe.dtypes == "object"]) | set(
-            other_numeric_columns)
+        set(dataframe.columns[dataframe.dtypes == "object"]) | set(other_numeric_columns)
     )
-    dataframe[fillna_mean_cols] = dataframe[fillna_mean_cols].fillna(
-        dataframe[fillna_mean_cols].mean())
-    dataframe[fillna_most_cols] = dataframe[fillna_most_cols].fillna(
-        dataframe[fillna_most_cols].mode().iloc[0])
+    dataframe[fillna_mean_cols] = dataframe[fillna_mean_cols].fillna(dataframe[fillna_mean_cols].mean())
+    dataframe[fillna_most_cols] = dataframe[fillna_most_cols].fillna(dataframe[fillna_most_cols].mode().iloc[0])
 
     # Clear '/t' and ' yes' or ' no' values
-    cat_cols = [
-        col for col in dataframe.columns if dataframe[col].dtype == 'object']
+    cat_cols = [col for col in dataframe.columns if dataframe[col].dtype == 'object']
     for col in cat_cols:
-        dataframe[col] = dataframe[col].astype(
-            str).apply(lambda s: s.replace('\t', ''))
-        dataframe[col] = dataframe[col].astype(
-            str).apply(lambda s: s.replace(' ', ''))
-
-    # randomize order
+        dataframe[col] = dataframe[col].astype(str).apply(lambda s: s.replace('\t', ''))
+        dataframe[col] = dataframe[col].astype(str).apply(lambda s: s.replace(' ', ''))
+    
+    #randomize order
     dataframe = dataframe.sample(frac=1).reset_index(drop=True)
-
+    
     dataframe = pd.get_dummies(dataframe, drop_first=True)
     y = dataframe.pop(dataframe.columns[-1]).values
     class_labels = np.unique(y)
-    # one hot encode
+    #one hot encode
+    
 
-    return dataframe, y, class_labels
-
+    return dataframe.iloc[: , 1:], y, class_labels
 
 def min_max_normalization(dataframe):
     """
@@ -227,8 +339,7 @@ def min_max_normalization(dataframe):
         Normalised dataframe
 
     """
-    return (dataframe - dataframe.min()) / (dataframe.max() - dataframe.min())
-
+    return (dataframe - dataframe.min()) / (dataframe.max()- dataframe.min())
 
 class PCA_dec:
     """
@@ -238,22 +349,19 @@ class PCA_dec:
     Class used to compute PCA decomosition with EVD method
 
     """
-
     def __init__(self, data):
         self.data = data
         self.cov_matrix = np.cov(np.transpose(self.data))
         self.eig_val, self.eig_vect = np.linalg.eig(self.cov_matrix)
-
+    
     def exp_variance(self):
         return np.cumsum(self.eig_val) / sum(self.eig_val)
-
+    
     def PCA_decomposition(self, dim):
-        reduce_data = np.dot(np.transpose(
-            self.eig_vect[:, :dim]), np.transpose(self.data))
+        reduce_data = np.dot(np.transpose(self.eig_vect[:,:dim]), np.transpose(self.data))
         return np.transpose(reduce_data)
-
-
-def KNN(X_train, Y_train, X_test, K):
+    
+def KNN(X_train,Y_train,X_test,K):
     """
     Code by : Alexandre Thouvenot
 
@@ -284,9 +392,8 @@ def KNN(X_train, Y_train, X_test, K):
         label_list = Y_train[index_list]
         val, nb = np.unique(label_list, return_counts=True)
         Y_test.append(val[np.argmax(nb)])
-
+        
     return np.array(Y_test)
-
 
 def K_Fold(X, n_split):
     """
@@ -315,13 +422,11 @@ def K_Fold(X, n_split):
     bloc_size = n_data // n_split
     for i in range(0, n_split):
         bloc_test = np.array(range(i * bloc_size, (i+1) * bloc_size))
-        bloc_train = np.delete(
-            np.array(range(0, bloc_size * n_split)), bloc_test)
+        bloc_train = np.delete(np.array(range(0, bloc_size * n_split)), bloc_test)
         train_index_list.append(bloc_train)
         test_index_list.append(bloc_test)
-
+        
     return train_index_list, test_index_list
-
 
 def display_data_histogram(X, x_plot, y_plot):
     """
@@ -344,15 +449,16 @@ def display_data_histogram(X, x_plot, y_plot):
         Figure of multiple histogram
 
     """
-    fig, axs = plt.subplots(x_plot, y_plot)
+    fig, axs = plt.subplots(x_plot, y_plot, figsize=(10,10))
     for i, column in enumerate(X.columns):
-        axs[i//x_plot, i % y_plot].hist(X[column].values, bins=20)
-        axs[i//x_plot, i % y_plot].set_title('Column ' + column)
+        axs[i//y_plot,i%y_plot].hist(X[column].values, bins=20)
+        axs[i//y_plot,i%y_plot].set_title('Column ' + column)
+        axs[i//y_plot,i%y_plot].set(xlabel='Value', ylabel='Nb element')
     fig.tight_layout()
     return axs
+    
 
-
-def display_confusion_matrix(model, X_test, Y_test, Y_pred):
+def display_confusion_matrix(model,X_test,Y_test,Y_pred):
     """
     Code by : Dylan Rachwal
 
@@ -375,10 +481,9 @@ def display_confusion_matrix(model, X_test, Y_test, Y_pred):
         Confusion_matrix of the model
 
     """
-    confusion_matrix_test = confusion_matrix(Y_test, Y_pred)
-    plot_confusion_matrix(model, X_test, Y_test)
+    confusion_matrix_test=confusion_matrix(Y_test,Y_pred)
+    plot_confusion_matrix(model,X_test,Y_test)
     return confusion_matrix_test
-
 
 def multiple_prediction_scores(model, X, Y, cv, scoring):
     """
@@ -405,16 +510,14 @@ def multiple_prediction_scores(model, X, Y, cv, scoring):
         Confusion_matrix of the model
 
     """
-    return cross_validate(model, X, Y, cv=cv,  scoring=scoring)
-
-
+    return cross_validate(model, X, Y, cv = cv,  scoring=scoring)    
+    
+    
 def modelChoice(modelName, trainingSize, dataFile):
     """
       Code by : Hazim Benslimane
-
       Summary
       Train with your desired Model
-
       Parameters
       ----------
       param1 : modelName
@@ -426,7 +529,6 @@ def modelChoice(modelName, trainingSize, dataFile):
       Returns
       -------
       A series of plot and the accuracy of your model
-
       """
     columns_name = ['variance', 'skewness', 'curtosis', 'entropy', 'class']
     X, Y, class_labels = load_data(dataFile, False, columns_name)
@@ -505,3 +607,4 @@ def modelChoice(modelName, trainingSize, dataFile):
         plt.contourf(x, y, Y_pred.reshape(100, 100), cmap='jet')
         plt.scatter(X_pca_2[:, 0], X_pca_2[:, 1], c=Y, alpha=0.4)
         plt.show()
+    
