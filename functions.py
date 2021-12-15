@@ -193,7 +193,7 @@ def min_max_normalization(dataframe):
     Parameters
     ----------
     param1 : pd.Dataframe
-        DataFrame which is cleaned and normalizedrs
+        DataFrame
     Returns
     -------
     pd.Dataframe 
@@ -288,6 +288,35 @@ def K_Fold(X, n_split):
         test_index_list.append(bloc_test)
         
     return train_index_list, test_index_list
+
+def display_data_histogram(X, x_plot, y_plot):
+    """
+    Code by : Alexandre Thouvenot
+
+    Summary
+    Plot dataframe features histogram
+
+    Parameters
+    ----------
+    param1 : pd.Dataframe
+        DataFrame
+    param2 : Int
+        x size of subplot
+    param2 : Int
+        y size of subplot
+    Returns
+    -------
+    plt.axs : 
+        Figure of multiple histogram
+
+    """
+    fig, axs = plt.subplots(x_plot, y_plot)
+    for i, column in enumerate(X.columns):
+        axs[i//x_plot,i%y_plot].hist(X[column].values, bins=20)
+        axs[i//x_plot,i%y_plot].set_title('Column ' + column)
+    fig.tight_layout()
+    return axs
+    
 
 def display_confusion_matrix(model,X_test,Y_test,Y_pred):
     """
