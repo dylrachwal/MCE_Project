@@ -9,7 +9,7 @@ from sklearn.model_selection import cross_val_score, ShuffleSplit
 
 
 
-def load_data(file_name, preprocess = False):
+def load_data(file_name, preprocess = False, columns_name = None):
     """
     Code by : Dylan
 
@@ -33,7 +33,7 @@ def load_data(file_name, preprocess = False):
         The different unique labels
 
     """
-    df = pd.read_csv(file_name, sep=",")
+    df = pd.read_csv(file_name, sep=",", names=columns_name)
     if (preprocess):
         return pre_process(df)
     Y = df.pop(df.columns[-1]).values
@@ -161,11 +161,35 @@ def pre_process (dataframe):
     #one hot encode
     
 
-    #normalization
-    dataframe = (dataframe - dataframe.min()) / (dataframe.max()- dataframe.min())
     return dataframe, y, class_labels
 
+def min_max_normalization(dataframe):
+     """
+    Code by : Alexandre Thouvenot
+
+    Summary
+    Compute KNN algorithm
+
+    Parameters
+    ----------
+    param1 : pd.Dataframe
+        DataFrame which is cleaned and normalizedrs
+    Returns
+    -------
+    pd.Dataframe 
+        Normalised dataframe
+
+    """
+    return (dataframe - dataframe.min()) / (dataframe.max()- dataframe.min())
+
 class PCA_dec:
+    """
+    Code by : Alexandre Thouvenot
+
+    Summary
+    Class used to compute PCA decomosition with EVD method
+
+    """
     def __init__(self, data):
         self.data = data
         self.cov_matrix = np.cov(np.transpose(self.data))
@@ -179,10 +203,71 @@ class PCA_dec:
         return np.transpose(reduce_data)
     
 def KNN(X_train,Y_train,X_test,K):
+    """
+    Code by : Alexandre Thouvenot
+
+    Summary
+    Compute KNN algorithm
+
+    Parameters
+    ----------
+    param1 : np.Array
+        Array which contains training values
+    param2 : np.Array
+        Array which contains training values labels
+    param3 : np.Array
+        Array which contains test values
+    param4 : Int
+        Number of neighbors
+    Returns
+    -------
+    List : 
+        List of index of training blocks
+    List :
+        List of index of test blocks
+
+    """
     Y_test = []
     for x in X_test:
         index_list = np.argsort(np.linalg.norm((X_train-x), axis=1))[:K]
         label_list = Y_train[index_list]
         val, nb = np.unique(label_list, return_counts=True)
         Y_test.append(val[np.argmax(nb)])
+        
     return Y_test
+
+def K_Fold(X, n_split):
+    """
+    Code by : Alexandre Thouvenot
+
+    Summary
+    Split data into n_split block to compute KFold cross validation
+
+    Parameters
+    ----------
+    param1 : np.Array
+        Array which contains training values
+    param2 : Int
+        Number of block
+    Returns
+    -------
+    List : 
+        List of index of training blocks
+    List :
+        List of index of test blocks
+
+    """
+    n_data, _ = X.shape
+    train_index_list = []
+    test_index_list = []
+    bloc_size = n_data // n_split
+    for i in range(0, n_split):
+        bloc_test = np.array(range(i * bloc_size, (i+1) * bloc_size))
+        bloc_train = np.delete(np.array(range(0, bloc_size * n_split)), bloc_test)
+        train_index_list.append(bloc_train)
+        test_index_list.append(bloc_test)
+        
+    return train_index_list, test_index_list
+    
+    
+    
