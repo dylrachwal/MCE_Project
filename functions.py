@@ -1,12 +1,11 @@
 #### Python script for every functions used
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_validate
 from sklearn import svm
 import numpy as np
-from sklearn.metrics import classification_report
+from sklearn.metrics import  confusion_matrix, classification_report, plot_confusion_matrix, recall_score,  roc_auc_score, log_loss, f1_score
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from sklearn.model_selection import cross_val_score, ShuffleSplit
-
 
 
 def load_data(file_name, preprocess = False, columns_name = None):
@@ -47,11 +46,33 @@ def split_data(X,Y,training_size):
     """
     return train_test_split(X, Y, test_size=X.shape[0]-training_size)
 
-def predict_SVC(X_train, X_test, Y_train):
+def predict_SVC(X_train, X_test, Y_train, kernel='linear'):
     """
-    create and predict a SVC model
+    Code by : Dylan Rachwal
+
+    Summary
+    create and predict using SVM algorithm
+
+    Parameters
+    ----------
+    param1 : pd.Dataframe
+        Dataset for training
+    param2 : pd.Dataframe
+        Dataset for testing
+    param3 : np.array
+        labels for training
+    param4 : string
+        Kernel for the SVM. Can be 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed'
+    Returns
+    -------
+    sklearn.svm.SVC : 
+        model of the SVM
+    
+    np.array :
+        predicted labels of the test dataset
+
     """
-    svc = svm.SVC()
+    svc = svm.SVC(kernel = kernel)
     svc.fit(X_train, Y_train)
     return svc, svc.predict(X_test)
 
@@ -164,7 +185,7 @@ def pre_process (dataframe):
     return dataframe, y, class_labels
 
 def min_max_normalization(dataframe):
-     """
+    """
     Code by : Alexandre Thouvenot
 
     Summary
@@ -268,6 +289,60 @@ def K_Fold(X, n_split):
         test_index_list.append(bloc_test)
         
     return train_index_list, test_index_list
-    
+
+
+def display_confusion_matrix(model,X_test,Y_test,Y_pred):
+    """
+    Code by : Dylan Rachwal
+
+    Summary
+    Plot and return the confusion matrix
+
+    Parameters
+    ----------
+    param1 : sklearn.model
+        model used to predict values
+    param2 : pd.Dataframe
+        Dataset for testing
+    param3 : np.array
+        labels for testing
+    param4 : np.array
+        labels predicted    
+    Returns
+    -------
+    np.array : 
+        Confusion_matrix of the model
+
+    """
+    confusion_matrix_test=confusion_matrix(Y_test,Y_pred)
+    plot_confusion_matrix(model,X_test,Y_test)
+    return confusion_matrix_test
+
+def multiple_prediction_scores(model, X, Y, cv, scoring):
+    """
+    Code by : Dylan Rachwal
+
+    Summary
+    Return the wanted scores of the model using cross validation
+
+    Parameters
+    ----------
+    param1 : sklearn.model
+        model used to predict values
+    param2 : pd.Dataframe
+        Dataset 
+    param3 : np.array
+        labels 
+    param4 : Int
+        size of the cross validation 
+    param5 : List[str]
+        List of the scores
+    Returns
+    -------
+    np.array : 
+        Confusion_matrix of the model
+
+    """
+    return cross_validate(model, X, Y, cv = cv,  scoring=scoring)    
     
     
