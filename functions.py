@@ -555,3 +555,42 @@ def multiple_prediction_scores(model, X, Y, cv, scoring):
 
     """
     return cross_validate(model, X, Y, cv=cv,  scoring=scoring)
+
+def train_knn_kfold(X,Y,n_split,K, class_labels):
+    """
+    Code by : Alexandre Thouvenot
+
+    Summary
+    Train KNN with KFold procedure
+
+    Parameters
+    ----------
+    param1 : np.array
+        Input value
+    param2 : np.array
+        Label 
+    param3 : Int
+        Block of KFold procedure
+    param4 : Int
+        K number of neighbour 
+    param5 : List
+        Class label
+    Returns
+    -------
+    np.array : 
+        Precision and recall of each label
+
+    """
+    train_index_list, test_index_list = K_Fold(X, n_split)
+    accuracy = np.zeros((1,2))
+    recall = np.zeros((1,2))
+    for index_train, index_test in zip(train_index_list, test_index_list):
+        X_train = X[index_train,:]
+        Y_train = Y[index_train]
+        X_test = X[index_test,:]
+        Y_test = Y[index_test]
+        Y_pred = KNN(X_train, Y_train, X_test, K)
+        res = precision_recall_multilabels(Y_test, Y_pred, class_labels)
+        accuracy += res[0]
+        recall += res[1]
+    return accuracy/n_split, recall/n_split
