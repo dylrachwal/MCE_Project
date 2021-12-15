@@ -1,10 +1,10 @@
-#### Python script for every functions used
+# Python script for every functions used
 import pandas as pd
 from sklearn.model_selection import train_test_split, cross_validate
 from sklearn import svm
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import  confusion_matrix, classification_report, plot_confusion_matrix, recall_score,  roc_auc_score, log_loss, f1_score
+from sklearn.metrics import confusion_matrix, classification_report, plot_confusion_matrix, recall_score,  roc_auc_score, log_loss, f1_score
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score, ShuffleSplit
@@ -12,7 +12,8 @@ from sklearn.model_selection import cross_val_score, ShuffleSplit
 from sklearn.tree import export_graphviz
 from graphviz import Source
 
-def load_data(file_name, preprocess = False, columns_name = None):
+
+def load_data(file_name, preprocess=False, columns_name=None):
     """
     Code by : Dylan
 
@@ -42,9 +43,10 @@ def load_data(file_name, preprocess = False, columns_name = None):
     Y = df.pop(df.columns[-1]).values
     X = df
     class_labels = np.unique(Y)
-    return X,Y,class_labels
+    return X, Y, class_labels
 
-def split_data(X,Y,test_size):
+
+def split_data(X, Y, test_size):
     """
     Code by : Dylan Rachwal
 
@@ -74,6 +76,7 @@ def split_data(X,Y,test_size):
     """
     return train_test_split(X, Y, test_size=test_size)
 
+
 def predict_SVC(X_train, X_test, Y_train, kernel='linear'):
     """
     Code by : Dylan Rachwal
@@ -95,12 +98,12 @@ def predict_SVC(X_train, X_test, Y_train, kernel='linear'):
     -------
     sklearn.svm.SVC : 
         model of the SVM
-    
+
     np.array :
         predicted labels of the test dataset
 
     """
-    svc = svm.SVC(kernel = kernel)
+    svc = svm.SVC(kernel=kernel)
     svc.fit(X_train, Y_train)
     return svc, svc.predict(X_test)
 
@@ -126,7 +129,7 @@ def predict_Random_Tree_Classification(X_train, X_test, Y_train, depth):
     -------
      sklearn.tree.DecisionTreeClassifier : 
         model 
-    
+
     np.array :
         predicted labels of the test dataset
 
@@ -159,38 +162,59 @@ def predict_Random_Forest_Classification(X_train, X_test, Y_train, depth, n_esti
     -------
      sklearn.tree.RandomForestClassifier : 
         model
-    
+
     np.array :
         predicted labels of the test dataset
 
     """
-    class_forest = RandomForestClassifier(max_depth=depth, n_estimators=n_estimators)
+    class_forest = RandomForestClassifier(
+        max_depth=depth, n_estimators=n_estimators)
     class_forest.fit(X_train, Y_train)
     return class_forest, class_forest.predict(X_test)
 
+
 def precision_recall_multilabels(y_true, y_pred, labels):
+    """
+    Code by : Hazim Benslimane
+
+    Summary
+    returns the precision recall
+
+    Parameters
+    ----------
+    param1 :y_true
+        Real Values of Y
+    param2 : y_pred
+        Predicted Values of y
+    param3: labels
+        label of class
+    Returns
+    -------
+    values : precision,recall
+    """
     recalls = np.zeros((1, 2))
     precisions = np.zeros((1, 2))
     for label in labels:
-        label_array=np.full((y_true.shape),label)
+        label_array = np.full((y_true.shape), label)
         real_association = y_true == label_array
         pred_association = label_array == y_pred
-        TP=np.count_nonzero(np.logical_and(real_association, pred_association))
-        P=np.count_nonzero(real_association)
-        FN=np.count_nonzero(pred_association)
-        if FN ==0 :
-            recalls [0,label] = 1
+        TP = np.count_nonzero(np.logical_and(
+            real_association, pred_association))
+        P = np.count_nonzero(real_association)
+        FN = np.count_nonzero(pred_association)
+        if FN == 0:
+            recalls[0, label] = 1
         else:
-            recalls[0,label]=TP/FN
-        if P == 0 :
-            precisions [0,label] = 0
-        else :
-            precisions[0,label]=TP/P
-        
+            recalls[0, label] = TP/FN
+        if P == 0:
+            precisions[0, label] = 0
+        else:
+            precisions[0, label] = TP/P
 
     return precisions, recalls
 
-def plot_decision_tree(model, feature_names ):
+
+def plot_decision_tree(model, feature_names):
     """
     Code by : Christopher Jabea
 
@@ -209,15 +233,17 @@ def plot_decision_tree(model, feature_names ):
         graph of the model
 
     """
-    plot_tree = export_graphviz(model, out_file=None, feature_names=feature_names, filled=True) 
-    graph = Source(plot_tree) 
+    plot_tree = export_graphviz(
+        model, out_file=None, feature_names=feature_names, filled=True)
+    graph = Source(plot_tree)
     graph.render("class_tree")
-    
+
     # Plot the tree
     graph
     return graph
 
-def find_best_depths(X,Y, n_depths=10, cv=False):
+
+def find_best_depths(X, Y, n_depths=10, cv=False):
     """
     Code by : Christopher Jabea
 
@@ -242,11 +268,12 @@ def find_best_depths(X,Y, n_depths=10, cv=False):
 
 
     """
-    cvp=None
+    cvp = None
     if(cv):
         # Define the cvp (cross-validation procedure) with random 1000 samples, 2/3 training size, and 1/3 test size
-        cvp = ShuffleSplit(n_splits=X.shape[0], test_size=1/3, train_size=2/3, random_state=0)
-    
+        cvp = ShuffleSplit(
+            n_splits=X.shape[0], test_size=1/3, train_size=2/3, random_state=0)
+
     # Define the max depths between 1 and 10
     depths = np.linspace(1, 10, n_depths)
 
@@ -254,11 +281,12 @@ def find_best_depths(X,Y, n_depths=10, cv=False):
     tab_log_tree = []
     for i in range(n_depths):
         class_tree = DecisionTreeClassifier(max_depth=depths[i])
-        tab_log_tree.append(-cross_val_score(class_tree, X, Y, scoring='neg_log_loss', cv=cvp))
+        tab_log_tree.append(-cross_val_score(class_tree, X,
+                            Y, scoring='neg_log_loss', cv=cvp))
     return tab_log_tree
 
 
-def pre_process (dataframe):
+def pre_process(dataframe):
     """
     Code by : Dylan
 
@@ -288,39 +316,47 @@ def pre_process (dataframe):
 
     # Convert remaining false string columns
     other_numeric_columns = ["sg", "al", "su"]
-    dataframe[other_numeric_columns] = dataframe[other_numeric_columns].apply(pd.to_numeric)
+    dataframe[other_numeric_columns] = dataframe[other_numeric_columns].apply(
+        pd.to_numeric)
 
-    ## convert false sting to numeric    a voir
+    # convert false sting to numeric    a voir
     false_strings = ["pcv", "wc", "rc"]
     for column in false_strings:
-        dataframe[column]=pd.to_numeric(dataframe[column], errors='coerce')
+        dataframe[column] = pd.to_numeric(dataframe[column], errors='coerce')
 
     # Replace missing values
     fillna_mean_cols = pd.Index(
-        set(dataframe.columns[dataframe.dtypes == "float64"]) - set(other_numeric_columns)
+        set(dataframe.columns[dataframe.dtypes ==
+            "float64"]) - set(other_numeric_columns)
     )
     fillna_most_cols = pd.Index(
-        set(dataframe.columns[dataframe.dtypes == "object"]) | set(other_numeric_columns)
+        set(dataframe.columns[dataframe.dtypes == "object"]) | set(
+            other_numeric_columns)
     )
-    dataframe[fillna_mean_cols] = dataframe[fillna_mean_cols].fillna(dataframe[fillna_mean_cols].mean())
-    dataframe[fillna_most_cols] = dataframe[fillna_most_cols].fillna(dataframe[fillna_most_cols].mode().iloc[0])
+    dataframe[fillna_mean_cols] = dataframe[fillna_mean_cols].fillna(
+        dataframe[fillna_mean_cols].mean())
+    dataframe[fillna_most_cols] = dataframe[fillna_most_cols].fillna(
+        dataframe[fillna_most_cols].mode().iloc[0])
 
     # Clear '/t' and ' yes' or ' no' values
-    cat_cols = [col for col in dataframe.columns if dataframe[col].dtype == 'object']
+    cat_cols = [
+        col for col in dataframe.columns if dataframe[col].dtype == 'object']
     for col in cat_cols:
-        dataframe[col] = dataframe[col].astype(str).apply(lambda s: s.replace('\t', ''))
-        dataframe[col] = dataframe[col].astype(str).apply(lambda s: s.replace(' ', ''))
-    
-    #randomize order
+        dataframe[col] = dataframe[col].astype(
+            str).apply(lambda s: s.replace('\t', ''))
+        dataframe[col] = dataframe[col].astype(
+            str).apply(lambda s: s.replace(' ', ''))
+
+    # randomize order
     dataframe = dataframe.sample(frac=1).reset_index(drop=True)
-    
+
     dataframe = pd.get_dummies(dataframe, drop_first=True)
     y = dataframe.pop(dataframe.columns[-1]).values
     class_labels = np.unique(y)
-    #one hot encode
-    
+    # one hot encode
 
-    return dataframe.iloc[: , 1:], y, class_labels
+    return dataframe.iloc[:, 1:], y, class_labels
+
 
 def min_max_normalization(dataframe):
     """
@@ -339,7 +375,8 @@ def min_max_normalization(dataframe):
         Normalised dataframe
 
     """
-    return (dataframe - dataframe.min()) / (dataframe.max()- dataframe.min())
+    return (dataframe - dataframe.min()) / (dataframe.max() - dataframe.min())
+
 
 class PCA_dec:
     """
@@ -349,19 +386,22 @@ class PCA_dec:
     Class used to compute PCA decomosition with EVD method
 
     """
+
     def __init__(self, data):
         self.data = data
         self.cov_matrix = np.cov(np.transpose(self.data))
         self.eig_val, self.eig_vect = np.linalg.eig(self.cov_matrix)
-    
+
     def exp_variance(self):
         return np.cumsum(self.eig_val) / sum(self.eig_val)
-    
+
     def PCA_decomposition(self, dim):
-        reduce_data = np.dot(np.transpose(self.eig_vect[:,:dim]), np.transpose(self.data))
+        reduce_data = np.dot(np.transpose(
+            self.eig_vect[:, :dim]), np.transpose(self.data))
         return np.transpose(reduce_data)
-    
-def KNN(X_train,Y_train,X_test,K):
+
+
+def KNN(X_train, Y_train, X_test, K):
     """
     Code by : Alexandre Thouvenot
 
@@ -392,8 +432,9 @@ def KNN(X_train,Y_train,X_test,K):
         label_list = Y_train[index_list]
         val, nb = np.unique(label_list, return_counts=True)
         Y_test.append(val[np.argmax(nb)])
-        
+
     return np.array(Y_test)
+
 
 def K_Fold(X, n_split):
     """
@@ -422,11 +463,13 @@ def K_Fold(X, n_split):
     bloc_size = n_data // n_split
     for i in range(0, n_split):
         bloc_test = np.array(range(i * bloc_size, (i+1) * bloc_size))
-        bloc_train = np.delete(np.array(range(0, bloc_size * n_split)), bloc_test)
+        bloc_train = np.delete(
+            np.array(range(0, bloc_size * n_split)), bloc_test)
         train_index_list.append(bloc_train)
         test_index_list.append(bloc_test)
-        
+
     return train_index_list, test_index_list
+
 
 def display_data_histogram(X, x_plot, y_plot):
     """
@@ -449,16 +492,16 @@ def display_data_histogram(X, x_plot, y_plot):
         Figure of multiple histogram
 
     """
-    fig, axs = plt.subplots(x_plot, y_plot, figsize=(10,10))
+    fig, axs = plt.subplots(x_plot, y_plot, figsize=(10, 10))
     for i, column in enumerate(X.columns):
-        axs[i//y_plot,i%y_plot].hist(X[column].values, bins=20)
-        axs[i//y_plot,i%y_plot].set_title('Column ' + column)
-        axs[i//y_plot,i%y_plot].set(xlabel='Value', ylabel='Nb element')
+        axs[i//y_plot, i % y_plot].hist(X[column].values, bins=20)
+        axs[i//y_plot, i % y_plot].set_title('Column ' + column)
+        axs[i//y_plot, i % y_plot].set(xlabel='Value', ylabel='Nb element')
     fig.tight_layout()
     return axs
-    
 
-def display_confusion_matrix(model,X_test,Y_test,Y_pred):
+
+def display_confusion_matrix(model, X_test, Y_test, Y_pred):
     """
     Code by : Dylan Rachwal
 
@@ -481,9 +524,10 @@ def display_confusion_matrix(model,X_test,Y_test,Y_pred):
         Confusion_matrix of the model
 
     """
-    confusion_matrix_test=confusion_matrix(Y_test,Y_pred)
-    plot_confusion_matrix(model,X_test,Y_test)
+    confusion_matrix_test = confusion_matrix(Y_test, Y_pred)
+    plot_confusion_matrix(model, X_test, Y_test)
     return confusion_matrix_test
+
 
 def multiple_prediction_scores(model, X, Y, cv, scoring):
     """
@@ -510,101 +554,4 @@ def multiple_prediction_scores(model, X, Y, cv, scoring):
         Confusion_matrix of the model
 
     """
-    return cross_validate(model, X, Y, cv = cv,  scoring=scoring)    
-    
-    
-def modelChoice(modelName, trainingSize, dataFile):
-    """
-      Code by : Hazim Benslimane
-      Summary
-      Train with your desired Model
-      Parameters
-      ----------
-      param1 : modelName
-        The possible values are SVM pr PCA, or forest
-      param2 : trainingSize
-          Defining the sizze of the training data
-      param3 : dataFile
-          Path to the file that contains your data
-      Returns
-      -------
-      A series of plot and the accuracy of your model
-      """
-    columns_name = ['variance', 'skewness', 'curtosis', 'entropy', 'class']
-    X, Y, class_labels = load_data(dataFile, False, columns_name)
-    X, Y = shuffle(X.values, Y)
-    X_train, X_test, Y_train, Y_test = split_data(X, Y, trainingSize)
-    if modelName == "SVM":
-        model_svm,Y_pred_SVM = predict_SVC(X_train,X_test,Y_train)
-        scoring = ['precision_macro', 'recall_macro', 'roc_auc', 'f1']
-        cv = 50
-        scores = multiple_prediction_scores(model_svm, X, Y, cv, scoring)
-        for key in enumerate(scores.keys()):
-            print((
-                      f"For the metric {key[1]}, the mean is {round(scores[key[1]].mean(), 3)} and the standard deviation is {round(scores[key[1]].std(), 3)}.\n"))
-        print('SVCModel Train Score is : ', model_svm.score(X_train, Y_train))
-        print('SVCModel Test Score is : ', model_svm.score(X_test, Y_test))
-        display_confusion_matrix(model_svm, X_test, Y_test, Y_pred_SVM);
-    if modelName == "forest":
-        tab_log_tree = find_best_depths(X, Y, cvp=True);
-        plt.boxplot(tab_log_tree)
-        plt.plot(np.linspace(1, 10, 10), [np.median(x) for x in tab_log_tree])
-        plt.legend(['NLL Median'])
-        plt.xlabel('Max depth of the tree')
-        plt.ylabel('Negative Log Loss')
-        class_forest = RandomForestClassifier(max_depth=3, n_estimators=1000)
-        class_forest.fit(X, Y)
-        pred_forest = class_forest.predict(X)
-    if modelName == "PCA":
-        pca_evd = PCA_dec(X)
-        pca_svd = PCA(n_components=4)
-        pca_svd.fit(X)
-
-        plt.plot(range(1, 5), pca_evd.exp_variance(), label="EVD")
-        plt.plot(range(1, 5), 1 - pca_svd.explained_variance_ratio_, label="SVD")
-        plt.xlabel('Nb composant')
-        plt.ylabel('Explained Variance')
-        plt.legend()
-        plt.show()
-        X_pca_2 = pca_evd.PCA_decomposition(2)
-        plt.scatter(X_pca_2[:, 0], X_pca_2[:, 1], c=Y)
-        plt.show()
-        X_pca_3 = pca_evd.PCA_decomposition(3)
-        fig = plt.figure()
-        ax = fig.add_subplot(projection='3d')
-        ax.scatter(X_pca_3[:, 0], X_pca_3[:, 1], X_pca_3[:, 2], c=Y)
-        plt.show()
-
-        K = 10
-        n_split = 5
-        train_index_list, test_index_list = K_Fold(X, n_split)
-
-        accuracy = np.zeros((1, 2))
-        recall = np.zeros((1, 2))
-        for index_train, index_test in zip(train_index_list, test_index_list):
-            X_train = X[index_train, :]
-            Y_train = Y[index_train]
-            X_test = X[index_test, :]
-            Y_test = Y[index_test]
-            Y_pred = KNN(X_train, Y_train, X_test, K)
-            res = precision_recall_multilabels(Y_test, Y_pred, class_labels)
-            accuracy += res[0]
-            recall += res[1]
-
-        print("Class 0 accuracy : ", accuracy[0, 0] / n_split)
-        print("Class 1 accuracy : ", accuracy[0, 1] / n_split)
-        print("Class 0 recall : ", recall[0, 0] / n_split)
-        print("Class 1 recall : ", recall[0, 1] / n_split)
-
-        K = 10
-        X_pca_2 = pca_evd.PCA_decomposition(2)
-        x = np.linspace(-1, 1, 100)
-        y = np.linspace(-1.5, 0.5, 100)
-
-        mesh_x, mesh_y = np.meshgrid(x, y)
-        u = np.dstack((mesh_x.reshape(-1), mesh_y.reshape(-1)))[0]
-        Y_pred = KNN(X_pca_2, Y, u, K)
-        plt.contourf(x, y, Y_pred.reshape(100, 100), cmap='jet')
-        plt.scatter(X_pca_2[:, 0], X_pca_2[:, 1], c=Y, alpha=0.4)
-        plt.show()
-    
+    return cross_validate(model, X, Y, cv=cv,  scoring=scoring)
